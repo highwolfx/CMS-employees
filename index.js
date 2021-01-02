@@ -272,6 +272,83 @@ function existingEmployees() {
     });
 };
 
+function addEmployees(){
+    // connection.query('')
+    // inquirer.prompt(
+    //         {
+    //         name:'newEmployeeFirstName',
+    //         type:'input',
+    //         message: 'Please enter the first name of the new employee.'
+    //         },
+    //         {
+    //             name:'newEmployeeLastName',
+    //             type:'input',
+    //             message: 'Please enter the last name of the new employee.'
+    //         },
+    //         {
+    //             name:'newEmployeeLastName',
+    //             type:'input',
+    //             message: 'Please enter the last name of the new employee.'
+    //         },
+    //         )
+};
+
+function deleteEmployees(){
+    connection.query('SELECT * FROM employee ORDER BY id; ', (err, results) => {
+        if (err) throw err;
+        (async () => {
+            const ans1 = await inquirer.prompt([
+                {
+                    name: 'choice',
+                    type: 'rawlist',
+                    choices: () => {
+                        var choiceArray = [];
+                        for (var i=0; i<results.length;i++){
+                            var fullName = [];
+                            fullName.push(results[i].first_name);
+                            fullName.push(results[i].last_name);
+                            choiceArray.push(fullName.toString().replace(',', ' '));
+                        }
+                        return choiceArray;
+                    },
+                    message: 'Who would you like to delete?'
+                }]);
+            const ans2 = await inquirer.prompt([
+                {
+                    name: 'confirmation',
+                    type: 'confirm',
+                    message: `Are you sure you would like to delete ${ans1.choice}?`
+                }]);
+            return {...ans1, ...ans2};
+        })()
+        .then((answer) => {
+            if (answer.confirmation === true){
+                const origName = answer.choice.split(' ');
+                connection.query('DELETE FROM employee WHERE ? AND ?',
+                [
+                    {
+                        first_name: origName[0]
+                    },
+                    {
+                        last_name: origName[1]
+                    }
+                ],
+                (err) => {
+                    if (err) throw err;
+                });
+                console.log('----------');
+                console.log(`Deleted ${answer.choice} from the Employee List.`);
+                console.log('----------');
+                existingEmployees();
+
+            } else {
+                deleteEmployees();
+            };
+        });
+    });
+};
+
+
 function existingDepartments() {
     inquirer.prompt({
         name: "existingDepartment",
