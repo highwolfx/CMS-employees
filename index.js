@@ -72,18 +72,24 @@ function viewEmployees() {
         name: "viewEmployees",
         type: "list",
         message: "How would you like to view employees?",
-        choices: ['By Name', 'By ID', 'By Manager', 'Back']
+        choices: ['By First Name', 'By Last Name', 'By ID', 'By Department', 'By Manager', 'Back']
     })
     .then((answer) => {
         switch (answer.viewEmployees){
-            case 'By Name':
-                viewEmployeesByName();
+            case 'By First Name':
+                viewEmployeesByFirstName();
+                break;
+            case 'By Last Name':
+                viewEmployeesByLastName();
                 break;
             case 'By ID':
                 viewEmployeesByID();
                 break;
             case 'By Manager':
                 viewEmployeesByManager();
+                break;
+            case 'By Department':
+                viewEmployeesByDepartment();
                 break;
             case 'Back':
                 viewOptions();
@@ -92,17 +98,70 @@ function viewEmployees() {
     });
 };
 
-function viewEmployeesByName(){
-    connection.query('SELECT DISTINCT a.id AS "Employee ID", a.first_name AS "First Name", a.last_name AS "Last Name", c.title AS "Role Title", d.name AS "Department", b.first_name AS "Manager First Name", b.last_name AS "Manager Last Name" FROM employee AS a INNER JOIN role AS c ON a.role_id=c.id LEFT OUTER JOIN employee AS b ON b.id=a.manager_id INNER JOIN department AS d ON c.department_ID=d.id ORDER BY a.first_name;',  (err, results) => {
+function viewEmployeesByFirstName(){
+    connection.query('SELECT DISTINCT a.first_name AS "First Name", a.last_name AS "Last Name", c.title AS "Role Title", d.name AS "Department", a.id AS "Employee ID", b.first_name AS "Manager First Name", b.last_name AS "Manager Last Name" FROM employee AS a INNER JOIN role AS c ON a.role_id=c.id LEFT OUTER JOIN employee AS b ON b.id=a.manager_id INNER JOIN department AS d ON c.department_ID=d.id ORDER BY a.first_name;',  (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
         console.log('----------');
         console.log('\n');
         console.log('\n');
+        console.log('\n');
     });
     viewEmployees();
-};    
+};
+
+function viewEmployeesByLastName(){
+    connection.query('SELECT DISTINCT a.last_name AS "Last Name", a.first_name AS "First Name", c.title AS "Role Title", d.name AS "Department", a.id AS "Employee ID", b.first_name AS "Manager First Name", b.last_name AS "Manager Last Name" FROM employee AS a INNER JOIN role AS c ON a.role_id=c.id LEFT OUTER JOIN employee AS b ON b.id=a.manager_id INNER JOIN department AS d ON c.department_ID=d.id ORDER BY a.last_name;',  (err, results) => {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+        console.log('----------');
+        console.log('\n');
+        console.log('\n');
+        console.log('\n');
+    });
+    viewEmployees();
+};
+
+function viewEmployeesByID(){
+    connection.query('SELECT DISTINCT a.id AS "Employee ID", a.first_name AS "First Name", a.last_name AS "Last Name", c.title AS "Role Title", d.name AS "Department", b.first_name AS "Manager First Name", b.last_name AS "Manager Last Name" FROM employee AS a INNER JOIN role AS c ON a.role_id=c.id LEFT OUTER JOIN employee AS b ON b.id=a.manager_id INNER JOIN department AS d ON c.department_ID=d.id ORDER BY a.id;',  (err, results) => {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+        console.log('----------');
+        console.log('\n');
+        console.log('\n');
+        console.log('\n');
+    });
+    viewEmployees();
+};
+
+function viewEmployeesByManager(){
+    connection.query('SELECT DISTINCT b.first_name AS "Manager First Name", b.last_name AS "Manager Last Name", a.first_name AS "First Name", a.last_name AS "Last Name", a.id AS "Employee ID", c.title AS "Role Title", d.name AS "Department" FROM employee AS a INNER JOIN role AS c ON a.role_id=c.id LEFT OUTER JOIN employee AS b ON b.id=a.manager_id INNER JOIN department AS d ON c.department_ID=d.id ORDER BY b.first_name;',  (err, results) => {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+        console.log('----------');
+        console.log('\n');
+        console.log('\n');
+        console.log('\n');
+    });
+    viewEmployees();
+};
+
+function viewEmployeesByDepartment(){
+    connection.query('SELECT DISTINCT d.name AS "Department", a.first_name AS "First Name", a.last_name AS "Last Name", c.title AS "Role Title", a.id AS "Employee ID", b.first_name AS "Manager First Name", b.last_name AS "Manager Last Name" FROM employee AS a INNER JOIN role AS c ON a.role_id=c.id LEFT OUTER JOIN employee AS b ON b.id=a.manager_id INNER JOIN department AS d ON c.department_ID=d.id ORDER BY d.name;',  (err, results) => {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+        console.log('----------');
+        console.log('\n');
+        console.log('\n');
+        console.log('\n');
+    });
+    viewEmployees();
+};
 
 
 function viewDepartments() {
