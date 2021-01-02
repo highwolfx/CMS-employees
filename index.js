@@ -6,7 +6,7 @@ const cTable = require("console.table");
 var config = require('./config/config.js');
 var connection = mysql.createConnection(config.databaseOptions);
 
-connection.connect(function(err) {
+connection.connect((err) => {
     if (err) throw err;
     start();
 });
@@ -20,7 +20,7 @@ function start() {
         message: "What would you like to do?",
         choices: ['View', 'Add/Delete', 'Update Existing', 'Exit']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.toplevel){
             case 'View':
                 viewOptions();
@@ -48,7 +48,7 @@ function viewOptions() {
         message: "What would you like to view?",
         choices: ['Employees', 'Departments', 'Roles', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.viewlevel){
             case 'Employees':
                 viewEmployees();
@@ -74,7 +74,7 @@ function viewEmployees() {
         message: "How would you like to view employees?",
         choices: ['By Name', 'By ID', 'By Manager', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.viewEmployees){
             case 'By Name':
                 viewEmployeesByName();
@@ -100,7 +100,7 @@ function viewDepartments() {
         message: "What would you like to view from all the departments?",
         choices: ['View All Names', 'View All Budgets', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.viewDepartments){
             case 'View All Names':
                 viewDepartmentNames();
@@ -116,20 +116,36 @@ function viewDepartments() {
 };
 
 function viewDepartmentNames() {
-    connection.query('SELECT id AS "Department ID", name AS "Department Name" FROM department;',  function(err, results) {
+    connection.query('SELECT id AS "Department ID", name AS "Department Name" FROM department;',  (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
+        console.log('----------');
+        console.log('\n');
+    });
+    viewDepartments();
+}
+
+function viewDepartmentBudgets() {
+    connection.query('SELECT role.department_ID AS "Department ID", SUM(role.salary) AS Budget, department.name AS "Department Name" FROM role INNER JOIN department ON role.department_ID=department.ID GROUP BY department.name;', (err, results) => {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+        console.log('----------');
+        console.log('\n');
     });
     viewDepartments();
 }
 
 
 function viewRoles() {
-    connection.query('SELECT role.title AS "Role Title", department_ID AS "Department ID", department.name AS "Department Name" FROM role INNER JOIN department ON role.department_ID=department.id;',  function(err, results) {
+    connection.query('SELECT role.title AS "Role Title", department_ID AS "Department ID", department.name AS "Department Name" FROM role INNER JOIN department ON role.department_ID=department.id GROUP BY department.id;',  (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
+        console.log('----------');
+        console.log('\n');
+        console.log('\n');
     });
     viewOptions();
 };
@@ -144,7 +160,7 @@ function existingOptions() {
         message: "What would you like to add/delete",
         choices: ['Employees', 'Departments', 'Roles', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.existinglevel){
             case 'Employees':
                 existingEmployees();
@@ -170,7 +186,7 @@ function existingEmployees() {
         message: "Would you like to add or delete?",
         choices: ['Add', 'Delete', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.existingEmployee){
             case 'Add':
                 addEmployees();
@@ -192,7 +208,7 @@ function existingDepartments() {
         message: "Would you like to add or delete?",
         choices: ['Add', 'Delete', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.existingDepartment){
             case 'Add':
                 addDeparment();
@@ -214,7 +230,7 @@ function existingRoles() {
         message: "Would you like to add or delete?",
         choices: ['Add', 'Delete', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.existingRoles){
             case 'Add':
                 addRoles();
@@ -239,7 +255,7 @@ function updateOptions() {
         message: "What would you like to update?",
         choices: ['Employees Roles', 'Employee Managers', 'Back']
     })
-    .then(function(answer) {
+    .then((answer) => {
         switch (answer.updatelevel){
             case 'Employees Roles':
                 updateRoles();
@@ -256,7 +272,7 @@ function updateOptions() {
 
 
 function updateRoles() {
-    connection.query("SELECT * FROM role", function(err, results) {
+    connection.query("SELECT * FROM role", (err, results) => {
         if (err) throw err;
         (async () => {
             const ans1 = await inquirer.prompt([
@@ -293,7 +309,7 @@ function updateRoles() {
                 }]);
             return {...ans1, ...ans2};
         })()
-        .then(function(answer){
+        .then((answer) => {
             connection.query('UPDATE role SET ? WHERE ?',
             [
                 {
@@ -303,7 +319,7 @@ function updateRoles() {
                     title: answer.choice
                 }
             ],
-            function(error) {
+            (error) => {
                 if (error) throw err;
             });
             console.log('----------')
@@ -315,7 +331,7 @@ function updateRoles() {
 };
 
 function updateManagers() {
-    connection.query("SELECT employee.first_name, employee.last_name, role.title FROM role INNER JOIN employee ON employee.role_id=role.id WHERE title='manager';", function(err, results) {
+    connection.query("SELECT employee.first_name, employee.last_name, role.title FROM role INNER JOIN employee ON employee.role_id=role.id WHERE title='manager';", (err, results) => {
         if (err) throw err;
         (async () => {
             const ans1 = await inquirer.prompt([
@@ -343,7 +359,7 @@ function updateManagers() {
                 }]);
             return {...ans1, ...ans2};
         })()
-        .then(function(answer){
+        .then((answer) => {
             const origName = answer.choice.split(' ');
             const newName = answer.newName.split(' ');
             connection.query('UPDATE employee SET ? WHERE ?',
@@ -355,7 +371,7 @@ function updateManagers() {
                     first_name: origName[0]
                 }
             ],
-            function(error) {
+            (error) => {
                 if (error) throw err;
             });
             connection.query('UPDATE employee SET ? WHERE ?',
@@ -367,7 +383,7 @@ function updateManagers() {
                     last_name: origName[1]
                 }
             ],
-            function(error) {
+            (error) => {
                 if (error) throw err;
             });
             console.log('----------')
