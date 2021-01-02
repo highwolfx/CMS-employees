@@ -273,5 +273,63 @@ function updateRoles() {
 };
 
 function updateManagers() {
-
+    connection.query("SELECT employee.first_name, employee.last_name, role.title FROM role INNER JOIN employee ON employee.role_id=role.id WHERE title='manager';", function(err, results) {
+        if (err) throw err;
+        (async () => {
+            const ans1 = await inquirer.prompt([
+                {
+                    name: 'choice',
+                    type: 'rawlist',
+                    choices: () => {
+                        var choiceArray = [];
+                        for (var i=0; i<results.length;i++){
+                            var fullName = [];
+                            fullName.push(results[i].first_name);
+                            fullName.push(results[i].last_name);
+                            choiceArray.push(fullName.toString().replace(',', ' '));
+                        }
+                        return choiceArray;
+                    },
+                    message: 'Who would you like to update?'
+                }]);
+            const ans2 = await inquirer.prompt([
+                {
+                    name: 'newName',
+                    type: 'input',
+                    message: 'What would you like the new name to be? (First and Last Name only)',
+                    default: ans1.choice
+                }]);
+            return {...ans1, ...ans2};
+        })()
+        .then(function(answer){
+            const origName = answer.choice.split(' ');
+            const newName = answer.newName.split(' ');
+            connection.query('UPDATE employee SET ? WHERE ?',
+            [
+                {
+                    first_name: newName[0]
+                },
+                {
+                    first_name: origName[0]
+                }
+            ],
+            function(error) {
+                if (error) throw err;
+            });
+            connection.query('UPDATE employee SET ? WHERE ?',
+            [
+                {
+                    last_name: newName[1]
+                },
+                {
+                    last_name: origName[1]
+                }
+            ],
+            function(error) {
+                if (error) throw err;
+            });
+            console.log('Manager updated successfully!');
+            updateOptions();
+        });
+    });
 };
