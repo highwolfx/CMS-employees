@@ -1,5 +1,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+
+// Grabs Config file with login and password information
 var config = require('./config/config.js');
 var connection = mysql.createConnection(config.databaseOptions);
 
@@ -9,12 +11,14 @@ connection.connect(function(err) {
     start();
 });
 
+
+// Top level introduction question
 function start() {
     inquirer.prompt({
         name: "toplevel",
         type: "list",
         message: "What would you like to do?",
-        choices: ['View', 'Add/Delete', 'Edit Existing', 'Exit']
+        choices: ['View', 'Add/Delete', 'Update Existing', 'Exit']
     })
     .then(function(answer) {
         switch (answer.toplevel){
@@ -22,10 +26,10 @@ function start() {
                 viewOptions();
                 break;
             case 'Add/Delete':
-                addOptions();
+                existingOptions();
                 break;
-            case 'Edit Existing':
-                editOptions();
+            case 'Update Existing':
+                updateOptions();
                 break;
             case 'Exit':
                 connection.end();
@@ -34,15 +38,17 @@ function start() {
     });
 };
 
+
+// All "View" Options
 function viewOptions() {
     inquirer.prompt({
-        name: "query",
+        name: "viewlevel",
         type: "list",
         message: "What would you like to view?",
         choices: ['Employees', 'Departments', 'Roles', 'Back']
     })
     .then(function(answer) {
-        switch (answer.query){
+        switch (answer.viewlevel){
             case 'Employees':
                 viewEmployees();
                 break;
@@ -72,13 +78,72 @@ function viewRoles() {
 };
 
 
+// All "Add/Delete" Options
+function existingOptions() {
+    inquirer.prompt({
+        name: "existinglevel",
+        type: "list",
+        message: "What would you like to add/delete",
+        choices: ['Employees', 'Departments', 'Roles', 'Back']
+    })
+    .then(function(answer) {
+        switch (answer.existinglevel){
+            case 'Employees':
+                existingEmployees();
+                break;
+            case 'Departments':
+                existingDepartments();
+                break;
+            case 'Roles':
+                existingRoles();
+                break;
+            case 'Back':
+                start();
+                break;
+        };
+    });
+};
 
-function addOptions() {
+function existingEmployees() {
+
+};
+
+function existingDepartments() {
+
+};
+
+function existingRoles() {
 
 };
 
 
+// All "Update" options
+function updateOptions() {
+    inquirer.prompt({
+        name: "updatelevel",
+        type: "list",
+        message: "What would you like to update?",
+        choices: ['Employees Roles', 'Employee Managers', 'Back']
+    })
+    .then(function(answer) {
+        switch (answer.updatelevel){
+            case 'Employees Roles':
+                updateRoles();
+                break;
+            case 'Employee Managers':
+                updateManagers();
+                break;
+            case 'Back':
+                start();
+                break;
+        };
+    });
+};
 
-function editOptions() {
+function updateRoles() {
+
+};
+
+function updateManagers() {
 
 };
