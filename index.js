@@ -92,6 +92,18 @@ function viewEmployees() {
     });
 };
 
+function viewEmployeesByName(){
+    connection.query('SELECT DISTINCT a.id AS "Employee ID", a.first_name AS "First Name", a.last_name AS "Last Name", c.title AS "Role Title", d.name AS "Department", b.first_name AS "Manager First Name", b.last_name AS "Manager Last Name" FROM employee AS a INNER JOIN role AS c ON a.role_id=c.id LEFT OUTER JOIN employee AS b ON b.id=a.manager_id INNER JOIN department AS d ON c.department_ID=d.id ORDER BY a.first_name;',  (err, results) => {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+        console.log('----------');
+        console.log('\n');
+        console.log('\n');
+    });
+    viewEmployees();
+};    
+
 
 function viewDepartments() {
     inquirer.prompt({
