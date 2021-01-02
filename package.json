@@ -1,0 +1,24 @@
+{
+  "name": "employee-tracker",
+  "version": "1.0.0",
+  "description": "Employee management system",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/highwolfx/CMS-employees.git"
+  },
+  "author": "Sean Chang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/highwolfx/CMS-employees/issues"
+  },
+  "homepage": "https://github.com/highwolfx/CMS-employees#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "express": "^4.17.1",
+    "inquirer": "^7.3.3"
+  }
+}
