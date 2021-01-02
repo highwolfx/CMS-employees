@@ -39,6 +39,7 @@ function start() {
 };
 
 
+
 // All "View" Options
 function viewOptions() {
     inquirer.prompt({
@@ -65,17 +66,59 @@ function viewOptions() {
     });
 };
 
-function viewEmployees() {
 
+function viewEmployees() {
+    inquirer.prompt({
+        name: "viewEmployees",
+        type: "list",
+        message: "How would you like to view employees?",
+        choices: ['By Name', 'By ID', 'By Manager', 'Back']
+    })
+    .then(function(answer) {
+        switch (answer.viewEmployees){
+            case 'By Name':
+                viewEmployeesByName();
+                break;
+            case 'By ID':
+                viewEmployeesByID();
+                break;
+            case 'By Manager':
+                viewEmployeesByManager();
+                break;
+            case 'Back':
+                viewOptions();
+                break;
+        };
+    });
 };
 
 function viewDepartments() {
-
+    inquirer.prompt({
+        name: "viewDepartments",
+        type: "list",
+        message: "What would you like to view from all the departments?",
+        choices: ['View All Names', 'View All Budgets', 'Back']
+    })
+    .then(function(answer) {
+        switch (answer.viewDepartments){
+            case 'View All Names':
+                viewDepartmentNames();
+                break;
+            case 'View All Budgets':
+                viewDepartmentBudgets();
+                break;
+            case 'Back':
+                viewOptions();
+                break;
+        };
+    });
 };
 
 function viewRoles() {
-
+    console.log('View Roles here');
+    viewOptions();
 };
+
 
 
 // All "Add/Delete" Options
@@ -104,17 +147,73 @@ function existingOptions() {
     });
 };
 
-function existingEmployees() {
 
+function existingEmployees() {
+    inquirer.prompt({
+        name: "existingEmployee",
+        type: "list",
+        message: "Would you like to add or delete?",
+        choices: ['Add', 'Delete', 'Back']
+    })
+    .then(function(answer) {
+        switch (answer.existingEmployee){
+            case 'Add':
+                addEmployees();
+                break;
+            case 'Delete':
+                deleteEmployees();
+                break;
+            case 'Back':
+                existingOptions();
+                break;
+        };
+    });
 };
 
 function existingDepartments() {
-
+    inquirer.prompt({
+        name: "existingDepartment",
+        type: "list",
+        message: "Would you like to add or delete?",
+        choices: ['Add', 'Delete', 'Back']
+    })
+    .then(function(answer) {
+        switch (answer.existingDepartment){
+            case 'Add':
+                addDeparment();
+                break;
+            case 'Delete':
+                deleteDepartment();
+                break;
+            case 'Back':
+                existingOptions();
+                break;
+        };
+    });
 };
 
 function existingRoles() {
-
+    inquirer.prompt({
+        name: "existingRoles",
+        type: "list",
+        message: "Would you like to add or delete?",
+        choices: ['Add', 'Delete', 'Back']
+    })
+    .then(function(answer) {
+        switch (answer.existingRoles){
+            case 'Add':
+                addRoles();
+                break;
+            case 'Delete':
+                deleteRoles();
+                break;
+            case 'Back':
+                existingOptions();
+                break;
+        };
+    });
 };
+
 
 
 // All "Update" options
@@ -140,8 +239,37 @@ function updateOptions() {
     });
 };
 
-function updateRoles() {
 
+function updateRoles() {
+    connection.query("SELECT * FROM role", function(err, results) {
+        if (err) throw err;
+        (async () => {
+            const ans1 = await inquirer.prompt([
+                {
+                    name: 'choice',
+                    type: 'rawlist',
+                    choices: () => {
+                        var choiceArray = [];
+                        for (var i=0; i<results.length;i++){
+                            choiceArray.push(results[i].title);
+                        }
+                        return choiceArray;
+                    },
+                    message: 'Which role would you like to update?'
+                }]);
+            const ans2 = await inquirer.prompt([
+                {
+                    name: 'newName',
+                    type: 'input',
+                    message: 'What would you like the new name to be?',
+                    default: ans1.choice
+                }]);
+            return {...ans1, ...ans2};
+        })()
+        .then(function(answer){
+            console.log(answer)
+        });
+    });
 };
 
 function updateManagers() {
