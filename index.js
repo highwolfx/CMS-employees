@@ -262,12 +262,39 @@ function updateRoles() {
                     name: 'newName',
                     type: 'input',
                     message: 'What would you like the new name to be?',
-                    default: ans1.choice
+                    default: ans1.choice,
+                    validate: (input) => {
+                        for (var i=0; i<results.length;i++){
+                            if(input === results[i].title){
+                                return 'You already have this role set. PLease choose another role name.';
+                            };
+                        };
+                        if(input===""){
+                            return 'Please enter a valid role name.';
+                        } else{
+                            return true;
+                        };
+                    }
                 }]);
             return {...ans1, ...ans2};
         })()
         .then(function(answer){
-            console.log(answer)
+            connection.query('UPDATE role SET ? WHERE ?',
+            [
+                {
+                    title: answer.newName
+                },
+                {
+                    title: answer.choice
+                }
+            ],
+            function(error) {
+                if (error) throw err;
+            });
+            console.log('----------')
+            console.log(`Employee Role updated successfully! ${answer.choice} has been changed to ${answer.newName}!`);
+            console.log('----------')
+            updateOptions();
         });
     });
 };
@@ -328,7 +355,9 @@ function updateManagers() {
             function(error) {
                 if (error) throw err;
             });
-            console.log('Manager updated successfully!');
+            console.log('----------')
+            console.log(`Manager updated successfully! ${answer.choice} has been changed to ${answer.newName}!`);
+            console.log('----------')
             updateOptions();
         });
     });
