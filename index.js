@@ -92,6 +92,7 @@ function viewEmployees() {
     });
 };
 
+
 function viewDepartments() {
     inquirer.prompt({
         name: "viewDepartments",
@@ -113,6 +114,16 @@ function viewDepartments() {
         };
     });
 };
+
+function viewDepartmentNames() {
+    connection.query('SELECT id AS "Department ID", name AS "Department Name" FROM department;',  function(err, results) {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+    });
+    viewDepartments();
+}
+
 
 function viewRoles() {
     connection.query('SELECT role.title AS "Role Title", department_ID AS "Department ID", department.name AS "Department Name" FROM role INNER JOIN department ON role.department_ID=department.id;',  function(err, results) {
