@@ -1,10 +1,10 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+const cTable = require("console.table");
 
 // Grabs Config file with login and password information
 var config = require('./config/config.js');
 var connection = mysql.createConnection(config.databaseOptions);
-
 
 connection.connect(function(err) {
     if (err) throw err;
@@ -115,7 +115,11 @@ function viewDepartments() {
 };
 
 function viewRoles() {
-    console.log('View Roles here');
+    connection.query('SELECT role.title AS "Role Title", department_ID AS "Department ID", department.name AS "Department Name" FROM role INNER JOIN department ON role.department_ID=department.id;',  function(err, results) {
+        if (err) throw err;
+        console.log('\n');
+        console.table(results);
+    });
     viewOptions();
 };
 
