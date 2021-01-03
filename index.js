@@ -372,33 +372,6 @@ function addEmployees(){
     });
 };
 
-function deleteEmployees{
-    connection.query('SELECT * FROM employee ORDER BY first_name', (err, results) =>{
-        if (err) throw err;
-        inquirer.prompt([
-            {
-                name: 'deletionChoice',
-                type: 'rawlist',
-                choices: () => {
-                    var choiceArray = [];
-                    for (var i=0; i<results.length;i++){
-                        var fullName = [];
-                        if (results[i].first_name !== null){
-                            fullName.push(results[i].first_name);
-                            fullName.push(results[i].last_name);
-                            choiceArray.push(fullName.toString().replace(',', ' '));
-                        };
-                    };
-                    return choiceArray;
-                },
-                message: 'Which employee shall be deleted?'
-            }
-        ]).then((result) =>{
-            console.log(result);
-        })
-    });
-};
-
 
 function deleteEmployees(){
     connection.query('SELECT * FROM employee ORDER BY id; ', (err, results) => {
@@ -475,6 +448,37 @@ function existingDepartments() {
                 existingOptions();
                 break;
         };
+    });
+};
+
+function addDeparment() {
+    connection.query('SELECT * FROM department', (err, results) => {
+        if (err) throw err;
+        inquirer.prompt({
+            name: 'newDepartment',
+            type: 'input',
+            message: 'What department would you like to add?',
+            validate: (input) => {
+                for (var i=0; i<results.length;i++){
+                    if(input === results[i].name){
+                        return 'You already have this as a department. Please enter a new department name.';
+                    };
+                };
+                if(input===""){
+                    return 'Please enter a valid department name.';
+                } else{
+                    return true;
+                };
+            }
+        }).then((result)=>{
+            connection.query(`INSERT INTO department(name) VALUE ("${result.newDepartment}");`, (err) =>{
+                if (err) throw err;
+            });
+            console.log('----------');
+            console.log(`New Department "${result.newDepartment}" successfully added to the database.`);
+            console.log('----------');
+            existingDepartments();
+        });
     });
 };
 
