@@ -482,6 +482,50 @@ function addDeparment() {
     });
 };
 
+function deleteDepartment() {
+    connection.query('SELECT * FROM department ORDER BY id; ', (err, results) => {
+        if (err) throw err;
+        (async () => {
+            const ans1 = await inquirer.prompt([
+                {
+                    name: 'choice',
+                    type: 'rawlist',
+                    choices: () => {
+                        var choiceArray = [];
+                        for (var i=0; i<results.length;i++){
+                            choiceArray.push(results[i].name);
+                        }
+                        return choiceArray;
+                    },
+                    message: 'Which department would you like to delete?'
+                }]);
+            const ans2 = await inquirer.prompt([
+                {
+                    name: 'confirmation',
+                    type: 'confirm',
+                    message: `Are you sure you would like to delete ${ans1.choice}?`
+                }]);
+            return {...ans1, ...ans2};
+        })()
+        .then((answer) => {
+            if (answer.confirmation === true){
+                connection.query(`DELETE FROM department WHERE name="${answer.choice}";`,
+                (err) => {
+                    if (err) throw err;
+                });
+                console.log('----------');
+                console.log(`Deleted ${answer.choice} from the Department List.`);
+                console.log('----------');
+                existingDepartments();
+
+            } else {
+                deleteDepartment();
+            };
+        });
+    });
+}
+
+
 function existingRoles() {
     inquirer.prompt({
         name: "existingRoles",
