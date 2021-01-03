@@ -193,16 +193,18 @@ function viewDepartmentNames() {
         console.table(results);
         console.log('----------');
         console.log('\n');
+        console.log('\n');
     });
     viewDepartments();
 }
 
 function viewDepartmentBudgets() {
-    connection.query('SELECT role.department_ID AS "Department ID", department.name AS "Department Name", SUM(role.salary) AS Budget FROM role INNER JOIN department ON role.department_ID=department.ID GROUP BY department.name ORDER BY department.name;', (err, results) => {
+    connection.query('SELECT department.name AS "Department Name", SUM(role.salary) AS Budget, department.id AS "Department ID" FROM role RIGHT JOIN department ON role.department_ID=department.ID GROUP BY department.name ORDER BY department.name;', (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
         console.log('----------');
+        console.log('\n');
         console.log('\n');
     });
     viewDepartments();
@@ -210,7 +212,7 @@ function viewDepartmentBudgets() {
 
 
 function viewRoles() {
-    connection.query('SELECT  department.name AS "Department Name", role.title AS "Role Title", department_ID AS "Department ID" FROM role INNER JOIN department ON role.department_ID=department.id GROUP BY department.id ORDER BY department.name;',  (err, results) => {
+    connection.query('SELECT  department.name AS "Department Name", role.title AS "Role Title", department_ID AS "Department ID" FROM role LEFT JOIN department ON role.department_ID=department.id ORDER BY department.name;',  (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
@@ -228,7 +230,7 @@ function existingOptions() {
     inquirer.prompt({
         name: "existinglevel",
         type: "list",
-        message: "What would you like to add/delete",
+        message: "What would you like to add/delete?",
         choices: ['Employees', 'Departments', 'Roles', 'Back']
     })
     .then((answer) => {
@@ -552,7 +554,7 @@ function existingRoles() {
 
 function addRoles() {
     var newRole = [];
-    connection.query('SELECT role.title, department.name FROM role INNER JOIN department ON role.department_ID=department.id;', (err, results) => {
+    connection.query('SELECT role.title, department.name FROM role RIGHT JOIN department ON role.department_ID=department.id;', (err, results) => {
         if (err) throw err;
         inquirer.prompt([
             {
@@ -577,7 +579,7 @@ function addRoles() {
                 type: 'input',
                 message: 'What is the salary of this position?',
                 validate: (input) => {
-                    if(input === NaN){
+                    if(isNaN(input)){
                         return "Please enter a valid number."
                     } else{
                         return true;
@@ -749,65 +751,85 @@ function updateRoles() {
 };
 
 function updateManagers() {
-    connection.query("SELECT employee.first_name, employee.last_name, role.title FROM role INNER JOIN employee ON employee.role_id=role.id WHERE title='manager';", (err, results) => {
+    connection.query('SELECT DISTINCT a.first_name AS "first_name", a.last_name AS "last_name", a.id AS "eID", b.first_name AS "m_first_name", b.last_name AS "m_last_name", b.id AS "mID" FROM employee AS a LEFT OUTER JOIN employee AS b ON b.id=a.manager_id ORDER BY a.id;', (err, results) => {
         if (err) throw err;
-        (async () => {
-            const ans1 = await inquirer.prompt([
-                {
-                    name: 'choice',
-                    type: 'rawlist',
-                    choices: () => {
-                        var choiceArray = [];
-                        for (var i=0; i<results.length;i++){
-                            var fullName = [];
-                            fullName.push(results[i].first_name);
-                            fullName.push(results[i].last_name);
-                            choiceArray.push(fullName.toString().replace(',', ' '));
-                        }
-                        return choiceArray;
+        inquirer.prompt([
+            {
+                name: 'choice',
+                type: 'rawlist',
+                choices: () => {
+                    var choiceArray = [];
+                    for (var i=0; i<results.length;i++){
+                        var fullName = [];
+                        fullName.push(results[i].first_name);
+                        fullName.push(results[i].last_name);
+                        choiceArray.push(fullName.toString().replace(',', ' '));
+                    }
+                    return choiceArray;
+                },
+                message: 'Who would you like to update?'
+            },
+            {
+                name: 'manager',
+                type: 'rawlist',
+                choices: () => {
+                    var choiceArray = ['null'];
+                    for (var i=0; i<results.length;i++){
+                        var fullName = [];
+                        fullName.push(results[i].first_name);
+                        fullName.push(results[i].last_name);
+                        choiceArray.push(fullName.toString().replace(',', ' '));
+                    }
+                    return choiceArray;
+                },
+                message: 'Who would you like their new manager to be?'
+            }])
+            .then((answer) => {
+            const origNameEmp = answer.choice.split(' ');
+            var empID;
+            var manID;
+            var origNameMan
+            if (answer.manager !== 'null'){
+                origNameMan = answer.manager.split(' ');
+            }
+            connection.query(`SELECT id FROM employee WHERE first_name="${origNameEmp[0]}" AND last_name="${origNameEmp[1]}"`,
+            (error, result) => {
+                if (error) throw err;
+                empID = result[0].id;
+                return empID;
+            });
+            if(answer.manager !== 'null'){
+                connection.query(`SELECT id FROM employee WHERE first_name="${origNameMan[0]}" AND last_name="${origNameMan[1]}"`,
+                (error, result) => {
+                    if (error) throw err;
+                    manID = result[0].id;
+                    return manID;
+                });
+            }
+            setTimeout(function () {
+                if(manID !== null){
+                    manID = manID;
+                } else {
+                    manID = null
+                    return manID;
+                };
+                empID = empID;
+                connection.query(`UPDATE employee SET ? WHERE ?`, 
+                [
+                    {
+                        manager_id: manID
                     },
-                    message: 'Who would you like to update?'
-                }]);
-            const ans2 = await inquirer.prompt([
-                {
-                    name: 'newName',
-                    type: 'input',
-                    message: 'What would you like the new name to be? (First and Last Name only)',
-                    default: ans1.choice
-                }]);
-            return {...ans1, ...ans2};
-        })()
-        .then((answer) => {
-            const origName = answer.choice.split(' ');
-            const newName = answer.newName.split(' ');
-            connection.query('UPDATE employee SET ? WHERE ?',
-            [
-                {
-                    first_name: newName[0]
-                },
-                {
-                    first_name: origName[0]
-                }
-            ],
-            (error) => {
-                if (error) throw err;
-            });
-            connection.query('UPDATE employee SET ? WHERE ?',
-            [
-                {
-                    last_name: newName[1]
-                },
-                {
-                    last_name: origName[1]
-                }
-            ],
-            (error) => {
-                if (error) throw err;
-            });
-            console.log('----------')
-            console.log(`Manager updated successfully! ${answer.choice} has been changed to ${answer.newName}!`);
-            console.log('----------')
-            updateOptions();
+                    {
+                        id: empID
+                    }
+                ],
+                (err)=>{
+                if (err) throw err;
+                    console.log('----------')
+                    console.log(`Manager updated successfully!`);
+                    console.log('----------')
+                    updateOptions();
+            })}, 100);
         });
     });
 };
