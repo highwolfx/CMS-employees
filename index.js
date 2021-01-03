@@ -273,25 +273,132 @@ function existingEmployees() {
 };
 
 function addEmployees(){
-    // connection.query('')
-    // inquirer.prompt(
-    //         {
-    //         name:'newEmployeeFirstName',
-    //         type:'input',
-    //         message: 'Please enter the first name of the new employee.'
-    //         },
-    //         {
-    //             name:'newEmployeeLastName',
-    //             type:'input',
-    //             message: 'Please enter the last name of the new employee.'
-    //         },
-    //         {
-    //             name:'newEmployeeLastName',
-    //             type:'input',
-    //             message: 'Please enter the last name of the new employee.'
-    //         },
-    //         )
+    var newEmployee = [];
+    connection.query("SELECT employee.first_name, employee.last_name, role.title, department.name FROM role LEFT JOIN employee ON employee.role_id=role.id RIGHT JOIN department ON department.id=role.department_ID ORDER BY employee.first_name;", (err, results) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: 'managerChoice',
+                type: 'rawlist',
+                choices: () => {
+                    var choiceArray = ['null'];
+                    for (var i=0; i<results.length;i++){
+                        var fullName = [];
+                        if (results[i].first_name !== null){
+                            fullName.push(results[i].first_name);
+                            fullName.push(results[i].last_name);
+                            choiceArray.push(fullName.toString().replace(',', ' '));
+                        };
+                    };
+                    return choiceArray;
+                },
+                message: 'Which Manager would the new employee be under?'
+            },
+            {
+                name: 'roleChoice',
+                type: 'rawlist',
+                choices: () => {
+                        var roleArray = [];
+                        for (var i=0; i<results.length;i++){
+                            if ((roleArray.includes(results[i].title) === false)&&(results[i].title !== null)){
+                                roleArray.push(results[i].title);
+                            };
+                        };
+                        return roleArray;
+                },
+                message: 'Please choose what role the new employee will be filling.'
+            },
+            {
+                name: 'firstName',
+                type: 'input',
+                message: 'Please enter the first name of the new employee.',
+                validate: (input) => {
+                    if ((input === "")||(input.indexOf(' ') >= 0)){
+                        return 'Field cannot be left blank or include spaces.'
+                    } else {
+                        return true;
+                    };
+                }
+            },
+            {
+                name: 'lastName',
+                type: 'input',
+                message: 'Please enter the last name of the new employee.',
+                validate: (input) => {
+                    if ((input === "")||(input.indexOf(' ') >= 0)){
+                        return 'Field cannot be left blank or include spaces.'
+                    } else {
+                        return true;
+                    };
+                }
+            }
+        ]).then((answer) => {
+            newEmployee = answer;
+            var managerName = [];
+            if (answer.managerChoice === 'null'){
+                newEmployee.managerChoice = null;
+            } else {
+                managerName = newEmployee.managerChoice.split(' ');
+            };
+            connection.query(`SELECT id FROM role WHERE title="${newEmployee.roleChoice}"`, (err, results)=>{
+                if (err) throw err;
+                newEmployee.roleChoice = results[0].id;
+                return newEmployee.roleChoice;
+            });
+            if (newEmployee.managerChoice !== null){
+                connection.query(`SELECT id FROM employee WHERE ? AND ?`, [
+                    {
+                        first_name: managerName[0]
+                    },
+                    {
+                        last_name: managerName[1]
+                    }
+                ], (err, results)=>{
+                    if (err) throw err;
+                    newEmployee.managerChoice = results[0].id;
+                    return newEmployee.managerChoice;
+                });
+            };
+            setTimeout(function () {
+                newEmployee=newEmployee;
+                connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${newEmployee.firstName}","${newEmployee.lastName}",${newEmployee.roleChoice},${newEmployee.managerChoice})`, (err)=>{
+                if (err) throw err;
+                console.log('----------');
+                console.log(`New Employee ${newEmployee.firstName} ${newEmployee.lastName} Added!`);
+                console.log('----------');
+                existingEmployees();
+            })}, 100);
+        });
+    });
 };
+
+function deleteEmployees{
+    connection.query('SELECT * FROM employee ORDER BY first_name', (err, results) =>{
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: 'deletionChoice',
+                type: 'rawlist',
+                choices: () => {
+                    var choiceArray = [];
+                    for (var i=0; i<results.length;i++){
+                        var fullName = [];
+                        if (results[i].first_name !== null){
+                            fullName.push(results[i].first_name);
+                            fullName.push(results[i].last_name);
+                            choiceArray.push(fullName.toString().replace(',', ' '));
+                        };
+                    };
+                    return choiceArray;
+                },
+                message: 'Which employee shall be deleted?'
+            }
+        ]).then((result) =>{
+            console.log(result);
+        })
+    });
+};
+
 
 function deleteEmployees(){
     connection.query('SELECT * FROM employee ORDER BY id; ', (err, results) => {
@@ -445,7 +552,7 @@ function updateRoles() {
                     validate: (input) => {
                         for (var i=0; i<results.length;i++){
                             if(input === results[i].title){
-                                return 'You already have this role set. PLease choose another role name.';
+                                return 'You already have this role set. Please choose another role name.';
                             };
                         };
                         if(input===""){
