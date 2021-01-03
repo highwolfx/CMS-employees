@@ -548,6 +548,116 @@ function existingRoles() {
     });
 };
 
+function addRoles() {
+    var newRole = [];
+    connection.query('SELECT role.title, department.name FROM role INNER JOIN department ON role.department_ID=department.id;', (err, results) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: 'newRole',
+                type: 'input',
+                message: 'What role would you like to add?',
+                validate: (input) => {
+                    for (var i=0; i<results.length;i++){
+                        if(input === results[i].title){
+                            return 'You already have this as a role. Please enter a new role title.';
+                        };
+                    };
+                    if(input===""){
+                        return 'Please enter a valid role title.';
+                    } else{
+                        return true;
+                    };
+                },
+            },
+            {
+                name: 'salary',
+                type: 'input',
+                message: 'What is the salary of this position?',
+                validate: (input) => {
+                    if(input === NaN){
+                        return "Please enter a valid number."
+                    } else{
+                        return true;
+                    }
+                }
+            },
+            {
+                name: 'department',
+                type: 'rawlist',
+                choices: () => {
+                    var choiceArray = [];
+                    for (var i=0; i<results.length;i++){
+                        if ((choiceArray.includes(results[i].name) === false)){
+                            choiceArray.push(results[i].name);
+                        };
+                    };
+                    return choiceArray;
+                },
+                message: 'Which department would you like to add it to?'
+            }
+        ]).then((result)=>{
+            newRole = result;
+            connection.query(`SELECT id FROM department WHERE name="${result.department}";`, (err,results) =>{
+                if (err) throw err;
+                newRole.department = results[0].id;
+                return newRole.department;
+            });
+            setTimeout(function () {
+                newRole=newRole;
+                connection.query(`INSERT INTO role (title, salary, department_id) VALUES ("${newRole.newRole}","${newRole.salary}",${newRole.department})`, (err)=>{
+                if (err) throw err;
+                    console.log('----------');
+                    console.log(`New Role ${newRole.newRole} Added!`);
+                    console.log('----------');
+                    existingRoles();
+            })}, 100);
+        });
+    });
+};
+
+function deleteRoles() {
+    connection.query('SELECT * FROM role ORDER BY id; ', (err, results) => {
+        if (err) throw err;
+        (async () => {
+            const ans1 = await inquirer.prompt([
+                {
+                    name: 'choice',
+                    type: 'rawlist',
+                    choices: () => {
+                        var choiceArray = [];
+                        for (var i=0; i<results.length;i++){
+                            choiceArray.push(results[i].title);
+                        }
+                        return choiceArray;
+                    },
+                    message: 'Which role would you like to delete?'
+                }]);
+            const ans2 = await inquirer.prompt([
+                {
+                    name: 'confirmation',
+                    type: 'confirm',
+                    message: `Are you sure you would like to delete ${ans1.choice}?`
+                }]);
+            return {...ans1, ...ans2};
+        })()
+        .then((answer) => {
+            if (answer.confirmation === true){
+                connection.query(`DELETE FROM role WHERE title="${answer.choice}";`,
+                (err) => {
+                    if (err) throw err;
+                });
+                console.log('----------');
+                console.log(`Deleted ${answer.choice} from the Role List.`);
+                console.log('----------');
+                existingRoles();
+
+            } else {
+                deleteRoles();
+            };
+        });
+    });
+}
 
 
 // All "Update" options
