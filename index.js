@@ -187,7 +187,7 @@ function viewDepartments() {
 };
 
 function viewDepartmentNames() {
-    connection.query('SELECT id AS "Department ID", name AS "Department Name" FROM department;',  (err, results) => {
+    connection.query('SELECT id AS "Department ID", name AS "Department Name" FROM department ORDER BY id;',  (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
@@ -198,7 +198,7 @@ function viewDepartmentNames() {
 }
 
 function viewDepartmentBudgets() {
-    connection.query('SELECT role.department_ID AS "Department ID", SUM(role.salary) AS Budget, department.name AS "Department Name" FROM role INNER JOIN department ON role.department_ID=department.ID GROUP BY department.name;', (err, results) => {
+    connection.query('SELECT role.department_ID AS "Department ID", department.name AS "Department Name", SUM(role.salary) AS Budget FROM role INNER JOIN department ON role.department_ID=department.ID GROUP BY department.name ORDER BY department.name;', (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
@@ -210,7 +210,7 @@ function viewDepartmentBudgets() {
 
 
 function viewRoles() {
-    connection.query('SELECT role.title AS "Role Title", department_ID AS "Department ID", department.name AS "Department Name" FROM role INNER JOIN department ON role.department_ID=department.id GROUP BY department.id;',  (err, results) => {
+    connection.query('SELECT  department.name AS "Department Name", role.title AS "Role Title", department_ID AS "Department ID" FROM role INNER JOIN department ON role.department_ID=department.id GROUP BY department.id ORDER BY department.name;',  (err, results) => {
         if (err) throw err;
         console.log('\n');
         console.table(results);
@@ -303,6 +303,7 @@ function addEmployees(){
                             if ((roleArray.includes(results[i].title) === false)&&(results[i].title !== null)){
                                 roleArray.push(results[i].title);
                             };
+                            roleArray.sort();
                         };
                         return roleArray;
                 },
@@ -494,6 +495,7 @@ function deleteDepartment() {
                         var choiceArray = [];
                         for (var i=0; i<results.length;i++){
                             choiceArray.push(results[i].name);
+                            choiceArray.sort();
                         }
                         return choiceArray;
                     },
@@ -591,6 +593,7 @@ function addRoles() {
                         if ((choiceArray.includes(results[i].name) === false)){
                             choiceArray.push(results[i].name);
                         };
+                        choiceArray.sort();
                     };
                     return choiceArray;
                 },
@@ -628,6 +631,7 @@ function deleteRoles() {
                         var choiceArray = [];
                         for (var i=0; i<results.length;i++){
                             choiceArray.push(results[i].title);
+                            choiceArray.sort();
                         }
                         return choiceArray;
                     },
@@ -696,6 +700,7 @@ function updateRoles() {
                         var choiceArray = [];
                         for (var i=0; i<results.length;i++){
                             choiceArray.push(results[i].title);
+                            choiceArray.sort();
                         }
                         return choiceArray;
                     },
