@@ -45,13 +45,11 @@ Licensed under the [MIT](LICENSE.txt) license.
 
 
 ## Credits
-Base development files were provided by the [UCSD Coding Bootcamp](https://bootcamp.extension.ucsd.edu/coding/).
-
 The package `express` for NodeJS can be found [here](https://www.npmjs.com/package/express).
 
 The package `mysql` for NodeJS can be found [here](https://www.npmjs.com/package/mysql).
 
-The package `uuid` for NodeJS can be found [here](https://www.npmjs.com/package/uuid).
+The package `console.table` for NodeJS can be found [here](https://www.npmjs.com/package/console.table).
 
 
 ## Questions
